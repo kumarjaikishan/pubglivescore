@@ -9,6 +9,10 @@
     width: 100%;
     margin-top: 20px;
   }
+  .scoreboard{
+    background: #242424;
+    color: #dedbdb;
+  }
 
   .score-header,
   .score-row {
@@ -32,11 +36,6 @@
     background-color: #f2f2f2;
     color: black;
     font-size: 14px;
-  }
-
-  .score-body {
-    background: #242424;
-    color: #dedbdb;
   }
 
   .player-bar {
@@ -122,8 +121,6 @@
   .row{
     margin: 5px 0;
     font-size: 13px;
-    background: #242424;
-    color: rgb(219, 214, 214);
   }
 
   .row-enter-active {
