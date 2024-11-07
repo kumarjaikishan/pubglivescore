@@ -3,7 +3,7 @@
     font-family: Arial, sans-serif;
     text-align: center;
     padding: 20px;
-  }
+  
   
   table {
     width: 100%;
@@ -12,7 +12,7 @@
   }
   
   table th, table td {
-    padding: 12px;
+    padding:5px 8px;
     border: 1px solid #ddd;
     text-align: center;
   }
@@ -21,11 +21,14 @@
     background-color: #f2f2f2;
     color: black;
   }
+  table tbody{
+    background: #242424;
+  }
   
   .player-status {
     display: flex;
     justify-content: center;
-    gap: 5px;
+    gap: 3px;
   }
   
   .player-bar {
@@ -34,16 +37,39 @@
     border-radius: 3px;
   }
   
-  .player-bar.alive {
+  .alive {
     background-color: white;
+    background-color: green;
   }
   
-  .player-bar.knocked {
+  .knocked {
+    background-color: red;
+    background-color: yellow;
+  }
+  
+  .eliminated {
+    background-color: grey;
     background-color: red;
   }
-  
-  .player-bar.eliminated {
-    background-color: grey;
+  .colorexplain{
+    background: black;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+  }
+  .colorexplain >span{
+    /* border: 1px solid yellow; */
+    padding: 5px 0px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 12px;
+  }
+  .colorexplain >span span:nth-child(1){
+    display: inline-block;
+    width: 5px ;
+    height: 20px;
+    border-radius: 5px;
   }
   
   /* Transition animations */
@@ -68,4 +94,4 @@
     transform: translateY(-20px);
     transition: opacity 300ms ease, transform 300ms ease;
   }
-  
+}
