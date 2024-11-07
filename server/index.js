@@ -1,4 +1,3 @@
-// index.js
 const express = require('express');
 const mongoose = require('mongoose');
 const teamRoutes = require('./routes/team_routes');
@@ -29,5 +28,6 @@ mongoose.connect(process.env.db, {
     .catch((error) => console.log('Error connecting to MongoDB:', error));
 
 // Start the server
-server.listen(PORT, () => console.log(`Server running on port ${PORT}`));
-
+server.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+});

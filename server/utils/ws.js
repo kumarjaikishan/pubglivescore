@@ -1,4 +1,3 @@
-// utils/ws.js
 const WebSocket = require('ws');
 
 // Store connections by tournament ID
@@ -6,6 +5,12 @@ const clientsByTournament = {};
 
 const initializeWebSocket = (server) => {
     const wss = new WebSocket.Server({ server });
+
+    // Log the WebSocket port once the server is started
+    wss.on('listening', () => {
+        const address = server.address();
+        console.log(`WebSocket server running on port ${address.port}`);
+    });
 
     // WebSocket connection handler
     wss.on('connection', (ws, req) => {
