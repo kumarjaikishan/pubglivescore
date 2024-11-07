@@ -57,6 +57,7 @@ const TournamentScore = () => {
           // Retry connection with an increasing delay
           const delay = Math.min(1000 * 2 ** retryCount, 30000); // Cap delay at 30 seconds
           setTimeout(() => {
+            console.log(`Retry ${retryCount} Delayed by:`,delay )
             setRetryCount((prevRetryCount) => prevRetryCount + 1);
             connectWebSocket();
           }, delay);
