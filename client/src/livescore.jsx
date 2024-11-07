@@ -12,45 +12,56 @@ const TournamentScore = () => {
   useEffect(() => {
     fetchTeams();
 
-    // Connect to WebSocket server
-    // const ws = new WebSocket('/');
-    const ws = new WebSocket('https://livescore.battlefiesta.in');
-    setConnectionStatus('connecting'); // When starting connection
+    let ws;
+    let pingInterval;
 
-    // Handle WebSocket connection open
-    ws.onopen = () => {
-      setConnectionStatus('connected'); // Connection established
-      ws.send(JSON.stringify({ tournamentId }));
-    };
+    const connectWebSocket = () => {
+      ws = new WebSocket('https://livescore.battlefiesta.in');
+      setConnectionStatus('connecting'); // When starting connection
 
-    // Handle WebSocket message
-    ws.onmessage = (event) => {
-      try {
-        const data = JSON.parse(event.data);
+      ws.onopen = () => {
+        setConnectionStatus('connected'); // Connection established
+        ws.send(JSON.stringify({ tournamentId }));
+        
+        // Send a ping message every 30 seconds to keep the connection alive
+        pingInterval = setInterval(() => {
+          ws.send(JSON.stringify({ type: 'ping' }));
+        }, 30000); // 30 seconds
+      };
 
-        if (data.type === 'statusUpdate' || data.type === 'scoreUpdate') {
-          // Update teams and sort them by points
-          setTeams((prevTeams) =>
-            prevTeams
-              .map((t) => (t._id === data.team._id ? { ...t, ...data.team } : t))
-              .sort((a, b) => b.points - a.points) // Sort by points in descending order
-          );
-        } else if (data.type === 'clientsCount') {
-          setConnectedClients(data.count); // Update connected clients count
+      ws.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+
+          if (data.type === 'statusUpdate' || data.type === 'scoreUpdate') {
+            // Update teams and sort them by points
+            setTeams((prevTeams) =>
+              prevTeams
+                .map((t) => (t._id === data.team._id ? { ...t, ...data.team } : t))
+                .sort((a, b) => b.points - a.points) // Sort by points in descending order
+            );
+          } else if (data.type === 'clientsCount') {
+            setConnectedClients(data.count); // Update connected clients count
+          }
+        } catch (error) {
+          console.error('Error parsing WebSocket message:', error);
         }
-      } catch (error) {
-        console.error('Error parsing WebSocket message:', error);
-      }
+      };
+
+      ws.onclose = () => {
+        setConnectionStatus('disconnected'); // Connection closed
+        clearInterval(pingInterval); // Clear the ping interval
+        // Attempt to reconnect after 5 seconds
+        setTimeout(connectWebSocket, 5000);
+      };
     };
 
-    // Handle WebSocket connection close
-    ws.onclose = () => {
-      setConnectionStatus('disconnected'); // Connection closed
-    };
+    connectWebSocket();
 
     // Cleanup on component unmount
     return () => {
       ws.close();
+      clearInterval(pingInterval);
     };
   }, [tournamentId]);
 
@@ -97,7 +108,7 @@ const TournamentScore = () => {
         <thead>
           <tr>
             <th>#</th>
-            <th>TEAM</th>
+            <th style={{textAlign:'left'}}>TEAM</th>
             <th>PTS</th>
             <th>ALIVE</th>
             <th>ELIMS</th>
@@ -115,7 +126,7 @@ const TournamentScore = () => {
                 transition={{ duration: 0.5 }}  // Animation duration
               >
                 <td>#{index + 1}</td>
-                <td>{team.teamName}</td>
+                <td style={{textAlign:'left'}}>{team.teamName}</td>
                 <td>{team.points}</td>
                 <td>
                   <div className="player-status">
