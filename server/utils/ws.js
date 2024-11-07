@@ -9,8 +9,12 @@ const initializeWebSocket = (server) => {
 
     // WebSocket connection handler
     wss.on('connection', (ws, req) => {
+        let tournamentId = null; // Track the tournamentId for this specific connection
+
         ws.on('message', (message) => {
-            const { tournamentId } = JSON.parse(message);
+            const { tournamentId: receivedTournamentId } = JSON.parse(message);
+
+            tournamentId = receivedTournamentId; // Save the tournamentId for this connection
 
             // Ensure we have a list of clients for this tournament ID
             if (!clientsByTournament[tournamentId]) {
@@ -24,19 +28,45 @@ const initializeWebSocket = (server) => {
             console.log(`User connected to tournament: ${tournamentId}`);
             console.log(`Total users connected to tournament ${tournamentId}: ${clientsByTournament[tournamentId].size}`);
 
+            // Send the number of connected clients to all clients of this tournament
+            broadcastClientCount(tournamentId);
+
             // Clean up on WebSocket close
             ws.on('close', () => {
                 clientsByTournament[tournamentId].delete(ws);
                 console.log(`User disconnected from tournament: ${tournamentId}`);
                 console.log(`Total users connected to tournament ${tournamentId}: ${clientsByTournament[tournamentId].size}`);
+
+                // Send the updated number of connected clients to all clients
+                broadcastClientCount(tournamentId);
             });
         });
     });
 };
 
+// Utility function to broadcast the connected client count
+const broadcastClientCount = (tournamentId) => {
+    const clients = clientsByTournament[tournamentId];
+
+    if (clients && clients.size > 0) {
+        const clientCountMessage = {
+            type: 'clientsCount',
+            count: clients.size, // Send the number of connected clients
+        };
+
+        // Broadcast the client count to all connected clients of the tournament
+        clients.forEach((client) => {
+            if (client.readyState === WebSocket.OPEN) {
+                client.send(JSON.stringify(clientCountMessage));
+            }
+        });
+    } else {
+        console.log(`No clients connected to tournament ${tournamentId}`);
+    }
+};
+
 // Utility function to send updates to clients
 const broadcastUpdate = (tournamentId, data) => {
-    // console.log(`Broadcasting update to tournament ${tournamentId}`, data);
     const clients = clientsByTournament[tournamentId];
 
     if (clients && clients.size > 0) {
