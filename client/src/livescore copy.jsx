@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import './livescore.css';
 
 const TournamentScore = () => {
@@ -12,13 +13,8 @@ const TournamentScore = () => {
     fetchTeams();
 
     // Connect to WebSocket server
-    // const ws = new WebSocket('ws://localhost:5006');
     const ws = new WebSocket('ws://localhost:5006');
-    // const ws = new WebSocket('wss://127.0.0.1:5006');
-    // const ws = new WebSocket('https://127.0.0.1:5006');
-    // const ws = new WebSocket('/ws');
-    // const ws = new WebSocket('/');
-
+    // const ws = new WebSocket('wss://172-31-4-241:5006');
     setConnectionStatus('connecting'); // When starting connection
 
     // Handle WebSocket connection open
@@ -33,6 +29,7 @@ const TournamentScore = () => {
         const data = JSON.parse(event.data);
 
         if (data.type === 'statusUpdate' || data.type === 'scoreUpdate') {
+          // Update teams and sort them by points
           setTeams((prevTeams) =>
             prevTeams
               .map((t) => (t._id === data.team._id ? { ...t, ...data.team } : t))
@@ -108,25 +105,34 @@ const TournamentScore = () => {
           </tr>
         </thead>
         <tbody>
-          {teams && teams.map((team, index) => (
-            <tr key={team._id} className="animated-row">
-              <td>#{index + 1}</td>
-              <td>{team.teamName}</td>
-              <td>{team.points}</td>
-              <td>
-                <div className="player-status">
-                  {team.players.map((status, idx) => (
-                    <div
-                      key={idx}
-                      className={`player-bar ${status}`}
-                      title={status.charAt(0).toUpperCase() + status.slice(1)}
-                    ></div>
-                  ))}
-                </div>
-              </td>
-              <td>{team.kills}</td>
-            </tr>
-          ))}
+          <AnimatePresence>
+            {teams && teams.map((team, index) => (
+              <motion.tr
+                key={team._id} // Ensures row transition works when order changes
+                className="animated-row"
+                initial={{ opacity: 0 }} // Fade in effect
+                animate={{ opacity: 1 }}    // Fade to full opacity
+                exit={{ opacity: 0 }}       // Fade out when exiting
+                transition={{ duration: 0.5 }}  // Animation duration
+              >
+                <td>#{index + 1}</td>
+                <td>{team.teamName}</td>
+                <td>{team.points}</td>
+                <td>
+                  <div className="player-status">
+                    {team.players.map((status, idx) => (
+                      <div
+                        key={idx}
+                        className={`player-bar ${status}`}
+                        title={status.charAt(0).toUpperCase() + status.slice(1)}
+                      ></div>
+                    ))}
+                  </div>
+                </td>
+                <td>{team.kills}</td>
+              </motion.tr>
+            ))}
+          </AnimatePresence>
         </tbody>
       </table>
     </div>

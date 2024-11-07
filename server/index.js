@@ -1,33 +1,53 @@
 const express = require('express');
-const mongoose = require('mongoose');
+const http = require('http');
+const socketIo = require('socket.io');
 const teamRoutes = require('./routes/team_routes');
 const cors = require('cors');
-const http = require('http');
-const { initializeWebSocket } = require('./utils/ws'); // Import WebSocket setup
+require('./conn.js'); // Ensure your MongoDB connection is established
 
 const app = express();
-const PORT = process.env.PORT || 5006;
+const server = http.createServer(app);
+const io = socketIo(server, {
+  cors: {
+    origin: "*",
+    methods: ["GET", "POST"],
+    credentials: true
+  }
+});
+
+// Export `io` for use in other modules
+
+
+// Constants
+const port = process.env.PORT || 5006;
+let connectedClients = 0; // Track the number of connected clients
 
 // Middleware
 app.use(express.json());
 app.use(cors());
-app.use('/api', teamRoutes);
+app.use('/api', teamRoutes); // Ensure your team routes have access to `io`
 
-// Create an HTTP server
-const server = http.createServer(app);
+// Socket.IO connection handling
+io.on('connection', (socket) => {
+  connectedClients++; // Increment client count when a new client connects
+  io.emit('clientsCount', { count: connectedClients });
 
-// Initialize WebSocket server on the HTTP server
-initializeWebSocket(server); // Call the WebSocket initializer
+  // Listen for tournament connection and join the room
+  socket.on('joinTournament', (tournamentId) => {
+    socket.join(tournamentId); // Join the specific tournament room
+    console.log(`Client joined tournament room: ${tournamentId}`);
+  });
 
-// Connect to MongoDB
-mongoose.connect(process.env.db, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true
-})
-    .then(() => console.log('MongoDB connected'))
-    .catch((error) => console.log('Error connecting to MongoDB:', error));
+  // Handle client disconnection
+  socket.on('disconnect', () => {
+    connectedClients--; // Decrement client count when a client disconnects
+    io.emit('clientsCount', { count: connectedClients });
+  });
+});
+
+module.exports = { io };
 
 // Start the server
-server.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
+server.listen(port, () => {
+  console.log(`Server listening at ${port}`);
 });
