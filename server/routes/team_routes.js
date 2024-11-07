@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const Team = require('../models/team');
-const Tournament = require('../models/tournament');
+const Team = require('../models/team_model');
+const Tournament = require('../models/tournament_model');
 const { broadcastUpdate } = require('../utils/ws');
 const WebSocket = require('ws');
 

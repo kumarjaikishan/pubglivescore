@@ -1,7 +1,7 @@
 // index.js
 const express = require('express');
 const mongoose = require('mongoose');
-const teamRoutes = require('./routes/Team');
+const teamRoutes = require('./routes/team_routes');
 const cors = require('cors');
 const http = require('http');
 const { initializeWebSocket } = require('./utils/ws'); // Import WebSocket setup

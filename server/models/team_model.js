@@ -17,4 +17,4 @@ const teamSchema = new mongoose.Schema({
   logo: { type: String, default: '' }, // URL for team logo
 });
 
-module.exports = mongoose.model('Team', teamSchema);
+module.exports = mongoose.model('team', teamSchema);
