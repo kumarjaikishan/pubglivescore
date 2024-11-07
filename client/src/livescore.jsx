@@ -103,7 +103,7 @@ const TournamentScore = () => {
       <div className="scoreboard">
         <div className="header">
           <span>#</span>
-          <span style={{textAlign:'left'}}>TEAM</span>
+          <span style={{ textAlign: 'left' }}>TEAM</span>
           <span>PTS</span>
           <span>ALIVE</span>
           <span>ELIMS</span>
@@ -113,13 +113,13 @@ const TournamentScore = () => {
             <motion.div
               key={team._id}
               className="row"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 10 }}
               transition={{ duration: 0.5 }}
             >
               <span>#{index + 1}</span>
-              <span style={{textAlign:'left'}}>{team.teamName}</span>
+              <span style={{ textAlign: 'left' }}>{team.teamName}</span>
               <span>{team.points}</span>
               <span className="player-status">
                 {team.players.map((status, idx) => (
@@ -134,6 +134,7 @@ const TournamentScore = () => {
             </motion.div>
           ))}
         </AnimatePresence>
+
       </div>
       <div className="colorexplain">
         <span > <span className='alive'></span> <span>Alive</span></span>

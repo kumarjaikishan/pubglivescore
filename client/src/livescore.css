@@ -122,6 +122,8 @@
   .row{
     margin: 5px 0;
     font-size: 13px;
+    background: #242424;
+    color: rgb(219, 214, 214);
   }
 
   .row-enter-active {
