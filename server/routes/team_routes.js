@@ -2,36 +2,59 @@ const express = require('express');
 const router = express.Router();
 const Team = require('../models/team_model');
 const Tournament = require('../models/tournament_model');
-const { io } = require('../index'); // Import `io` from server.js
+const { broadcastUpdate } = require('../utils/ws');
+const WebSocket = require('ws');
 
-// Get the team list for a specific tournament
+
 router.get('/teamlist/:tournamentId', async (req, res) => {
     const { tournamentId } = req.params;
     try {
         const team = await Team.find({ tournament: tournamentId }).populate({
             path: 'tournament',
-            select: 'killpoints name pointstable'
+            select: 'killpoints name pointstable' // Include only specific fields from 'tournament'
         });
+        console.log(team)
         res.status(200).json({ team });
     } catch (error) {
         res.status(500).json({ message: 'Error fetching team list', error });
     }
 });
-
 router.get('/tournalist', async (req, res) => {
+    const { tournamentId } = req.params;
     try {
         const tournament = await Tournament.find();
         res.status(200).json({ tournament });
     } catch (error) {
-        res.status(500).json({ message: 'Error fetching tournament list', error });
+        res.status(500).json({ message: 'Error fetching team list', error });
     }
 });
 
-// Register a new team
+router.post('/addtournament', async (req, res) => {
+    try {
+        const { tournamentName, killpoints } = req.body;
+
+        // Ensure all required fields are present
+        if (!tournamentName || !killpoints) {
+            return res.status(400).json({ message: "can't be empty" });
+        }
+
+        const tourn = new Tournament({
+            tournName: tournamentName,
+            killpoints: killpoints || 0,
+        });
+
+        await tourn.save();
+        res.status(201).json({ message: 'Tournament created successfully' });
+    } catch (error) {
+        res.status(500).json({ message: 'Error creating tournament', error });
+    }
+});
+
 router.post('/register', async (req, res) => {
     try {
         const { tournament, teamName, points, kills, players, logo } = req.body;
 
+        // Ensure all required fields are present
         if (!teamName || !players || players.length === 0) {
             return res.status(400).json({ message: 'Team name and at least one player are required' });
         }
@@ -47,75 +70,48 @@ router.post('/register', async (req, res) => {
 
         await team.save();
         res.status(201).json({ message: 'Team registered successfully', team });
-
-        // Notify all connected clients when a new team is registered
-        io.emit('newTeamRegistered', team);
     } catch (error) {
         res.status(500).json({ message: 'Error registering team', error });
     }
 });
 
-// Update team status
 router.put('/updatestatus/:id', async (req, res) => {
     try {
         const team = await Team.findByIdAndUpdate(
             req.params.id,
             { players: req.body.players },
             { new: true }
-        ).populate('tournament'); // Ensure tournament is populated
+        );
 
         if (!team) {
             return res.status(404).json({ message: 'Team not found' });
         }
 
-        // Debugging log to check the team object
-        console.log('Team after update and populate:', team);
-        console.log('Tournament ID:', team.tournament ? team.tournament._id : 'No tournament');
+        broadcastUpdate(team.tournament, { type: 'statusUpdate', team });
 
-        // Ensure the tournament ID is a string and is not null or undefined
-        if (team.tournament && team.tournament._id) {
-            io.to(team.tournament._id.toString()).emit('tournamentUpdate', {
-                type: 'statusUpdate',
-                team
-            });
-            res.json({ message: 'Updated successfully' });
-        } else {
-            res.status(500).json({ message: 'Tournament not found for the team' });
-        }
+        res.json({ message: 'Updated successfully' });
     } catch (error) {
         console.error('Error updating status:', error);
         res.status(500).json({ message: 'Error updating status', error });
     }
 });
 
-// Update team score
 router.put('/updatescore/:id', async (req, res) => {
-    const { kills, points } = req.body;
+    const kills = req.body.kills;
+    const points = req.body.points;
     try {
         const team = await Team.findByIdAndUpdate(
             req.params.id,
             { kills, points },
             { new: true }
-        ).populate('tournament'); // Ensure tournament is populated
+        );
 
         if (!team) {
             return res.status(404).json({ message: 'Team not found' });
         }
+        broadcastUpdate(team.tournament, { type: 'scoreUpdate', team });
 
-        // Debugging log to check the team object
-        console.log('Team after update and populate:', team);
-        console.log('Tournament ID:', team.tournament ? team.tournament._id : 'No tournament');
-
-        // Ensure the tournament ID is a string and is not null or undefined
-        if (team.tournament && team.tournament._id) {
-            io.to(team.tournament._id.toString()).emit('tournamentUpdate', {
-                type: 'scoreUpdate',
-                team
-            });
-            res.json({ message: 'Updated successfully' });
-        } else {
-            res.status(500).json({ message: 'Tournament not found for the team' });
-        }
+        res.json({ message: 'Updated successfully' });
     } catch (error) {
         res.status(500).json({ message: 'Error updating score', error });
     }

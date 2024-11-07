@@ -1,56 +1,56 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import socketIOClient from 'socket.io-client';
 import { motion, AnimatePresence } from 'framer-motion';
 import './livescore.css';
 
 const TournamentScore = () => {
   const { tournamentId } = useParams(); // Get tournamentId from URL params
   const [teams, setTeams] = useState([]);
-  const [socket, setSocket] = useState(null);
   const [connectedClients, setConnectedClients] = useState(0);
   const [connectionStatus, setConnectionStatus] = useState('disconnected'); // Track connection status
-  const endpoint = '/';
 
   useEffect(() => {
-    fetchTeams(); // Fetch teams initially
+    fetchTeams();
 
-    setConnectionStatus('connecting'); // When establishing connection
+    // Connect to WebSocket server
+    const ws = new WebSocket('ws://localhost:5006');
+    // const ws = new WebSocket('wss://172-31-4-241:5006');
+    setConnectionStatus('connecting'); // When starting connection
 
-    const socketIo = socketIOClient(endpoint); // Establish socket connection
-    setSocket(socketIo); // Save socket connection in state
+    // Handle WebSocket connection open
+    ws.onopen = () => {
+      setConnectionStatus('connected'); // Connection established
+      ws.send(JSON.stringify({ tournamentId }));
+    };
 
-    // Join the specific tournament room
-    socketIo.emit('joinTournament', tournamentId);
+    // Handle WebSocket message
+    ws.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
 
-    socketIo.on('connect', () => {
-      setConnectionStatus('connected'); // Socket is connected
-    });
-
-    socketIo.on('disconnect', () => {
-      setConnectionStatus('disconnected'); // Socket is disconnected
-    });
-
-    // Listen for the real-time connected clients count
-    socketIo.on('clientsCount', ({ count }) => {
-      setConnectedClients(count); // Update the state with the connected clients count
-    });
-
-    // Listen for tournament-specific updates (e.g., score or status updates)
-    socketIo.on('tournamentUpdate', (data) => {
-      if (data.type === 'statusUpdate' || data.type === 'scoreUpdate') {
-        setTeams((prevTeams) =>
-          prevTeams
-            .map((t) => (t._id === data.team._id ? { ...t, ...data.team } : t))
-            .sort((a, b) => b.points - a.points) // Sort by points in descending order
-        );
+        if (data.type === 'statusUpdate' || data.type === 'scoreUpdate') {
+          // Update teams and sort them by points
+          setTeams((prevTeams) =>
+            prevTeams
+              .map((t) => (t._id === data.team._id ? { ...t, ...data.team } : t))
+              .sort((a, b) => b.points - a.points) // Sort by points in descending order
+          );
+        } else if (data.type === 'clientsCount') {
+          setConnectedClients(data.count); // Update connected clients count
+        }
+      } catch (error) {
+        console.error('Error parsing WebSocket message:', error);
       }
-    });
+    };
+
+    // Handle WebSocket connection close
+    ws.onclose = () => {
+      setConnectionStatus('disconnected'); // Connection closed
+    };
 
     // Cleanup on component unmount
     return () => {
-      socketIo.disconnect();
-      setConnectionStatus('disconnected');
+      ws.close();
     };
   }, [tournamentId]);
 
@@ -59,7 +59,7 @@ const TournamentScore = () => {
     try {
       const response = await fetch(`${import.meta.env.VITE_API_ADDRESS}teamlist/${tournamentId}`);
       const data = await response.json();
-      setTeams(data.team.sort((a, b) => b.points - a.points)); // Sort by points initially
+      setTeams(data.team.sort((a, b) => b.points - a.points));
     } catch (error) {
       console.error('Error fetching teams:', error);
     }
@@ -81,7 +81,7 @@ const TournamentScore = () => {
 
   return (
     <div className="tournament-score">
-      <div id="status">
+      <div id='status'>
         <i>Status: </i>
         <i
           className="fa fa-wifi"

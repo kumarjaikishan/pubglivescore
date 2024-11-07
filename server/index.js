@@ -1,53 +1,33 @@
 const express = require('express');
-const http = require('http');
-const socketIo = require('socket.io');
+const mongoose = require('mongoose');
 const teamRoutes = require('./routes/team_routes');
 const cors = require('cors');
-require('./conn.js'); // Ensure your MongoDB connection is established
+const http = require('http');
+const { initializeWebSocket } = require('./utils/ws'); // Import WebSocket setup
 
 const app = express();
-const server = http.createServer(app);
-const io = socketIo(server, {
-  cors: {
-    origin: "*",
-    methods: ["GET", "POST"],
-    credentials: true
-  }
-});
-
-// Export `io` for use in other modules
-
-
-// Constants
-const port = process.env.PORT || 5006;
-let connectedClients = 0; // Track the number of connected clients
+const PORT = process.env.PORT || 5006;
 
 // Middleware
 app.use(express.json());
 app.use(cors());
-app.use('/api', teamRoutes); // Ensure your team routes have access to `io`
+app.use('/api', teamRoutes);
 
-// Socket.IO connection handling
-io.on('connection', (socket) => {
-  connectedClients++; // Increment client count when a new client connects
-  io.emit('clientsCount', { count: connectedClients });
+// Create an HTTP server
+const server = http.createServer(app);
 
-  // Listen for tournament connection and join the room
-  socket.on('joinTournament', (tournamentId) => {
-    socket.join(tournamentId); // Join the specific tournament room
-    console.log(`Client joined tournament room: ${tournamentId}`);
-  });
+// Initialize WebSocket server on the HTTP server
+initializeWebSocket(server); // Call the WebSocket initializer
 
-  // Handle client disconnection
-  socket.on('disconnect', () => {
-    connectedClients--; // Decrement client count when a client disconnects
-    io.emit('clientsCount', { count: connectedClients });
-  });
-});
-
-module.exports = { io };
+// Connect to MongoDB
+mongoose.connect(process.env.db, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true
+})
+    .then(() => console.log('MongoDB connected'))
+    .catch((error) => console.log('Error connecting to MongoDB:', error));
 
 // Start the server
-server.listen(port, () => {
-  console.log(`Server listening at ${port}`);
+server.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
 });
