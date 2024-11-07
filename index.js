@@ -14,10 +14,16 @@ app.use(express.json());
 app.use(cors());
 app.use('/api', teamRoutes);
 
+// Serve static files from the frontend's dist folder
 app.use(express.static(path.resolve(__dirname, 'client', 'dist')));
 
-// Route to serve the frontend
+// Route to serve the frontend for the root URL
 app.get('/', (req, res) => {
+  res.sendFile(path.resolve(__dirname, 'client', 'dist', 'index.html'));
+});
+
+// Catch-all route to handle all other frontend routes and prevent "Cannot GET /page"
+app.get('*', (req, res) => {
   res.sendFile(path.resolve(__dirname, 'client', 'dist', 'index.html'));
 });
 
