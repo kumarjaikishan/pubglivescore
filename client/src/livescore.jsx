@@ -13,7 +13,7 @@ const TournamentScore = () => {
     fetchTeams();
 
     // Connect to WebSocket server
-    const ws = new WebSocket('ws://localhost:5000');
+    const ws = new WebSocket('ws://localhost:5006');
 
     // On WebSocket connection open, send the tournamentId
     ws.onopen = () => {
