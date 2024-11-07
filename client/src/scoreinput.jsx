@@ -13,7 +13,6 @@ const TournamentInput = () => {
       try {
         const response = await fetch(`${import.meta.env.VITE_API_ADDRESS}teamlist/${tournamentId}`);
         const data = await response.json();
-        // console.log(data)
         setTeams(data.team); // Set the fetched teams
       } catch (error) {
         console.error('Error fetching teams:', error);
@@ -21,7 +20,7 @@ const TournamentInput = () => {
     };
 
     fetchTeams();
-  }, []);
+  }, [tournamentId]);
 
   const updatePlayerStatus = async (teamId, playerIndex, status) => {
     let latestStatus;
@@ -34,10 +33,10 @@ const TournamentInput = () => {
           return { ...team, players: newPlayers };
         }
         return team;
-      }));
+      })
+    );
 
     try {
-      // const updatedTeam = teams.find((team) => team._id === teamId);
       fetch(`${import.meta.env.VITE_API_ADDRESS}updatestatus/${teamId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
@@ -59,13 +58,14 @@ const TournamentInput = () => {
   };
 
   const updateKills = async (teamId, kills) => {
+    console.log("score update")
     setTeams((prevTeams) =>
       prevTeams.map((team) =>
         team._id === teamId ? { ...team, kills, points: kills * killpoints } : team
       )
     );
+
     try {
-      // Send the updated kills and points to the server
       const response = await fetch(`${import.meta.env.VITE_API_ADDRESS}updatescore/${teamId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
@@ -80,15 +80,20 @@ const TournamentInput = () => {
     }
   };
 
+  const handleBlur = (e, teamId) => {
+    const kills = parseInt(e.target.value, 10) || 0;
+    updateKills(teamId, kills);
+  };
+
   return (
     <div className="tournament-input">
       <h1>PUBG Tournament Score Input</h1>
       <table>
         <thead>
           <tr>
-            <th>Position</th>
-            <th>Team Name</th>
-            <th>Points</th>
+            <th>#</th>
+            <th>Team </th>
+            <th>Pts</th>
             <th>Kills</th>
             <th>Player Status</th>
           </tr>
@@ -103,7 +108,14 @@ const TournamentInput = () => {
                 <input
                   type="number"
                   value={team.kills}
-                  onChange={(e) => updateKills(team._id, parseInt(e.target.value, 10) || 0)}
+                  onBlur={(e) => handleBlur(e, team._id)}
+                  onChange={(e) => setTeams((prevTeams) =>
+                    prevTeams.map((prevTeam) =>
+                      prevTeam._id === team._id
+                        ? { ...prevTeam, kills: parseInt(e.target.value, 10) || 0 }
+                        : prevTeam
+                    )
+                  )}
                   min="0"
                 />
               </td>
