@@ -87,7 +87,7 @@ const TournamentInput = () => {
 
   return (
     <div className="tournament-input">
-      <h1>PUBG Tournament Score Input</h1>
+      <h2>PUBG Tournament Score Input</h2>
       <table>
         <thead>
           <tr>
