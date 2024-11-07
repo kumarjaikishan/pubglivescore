@@ -13,7 +13,6 @@ router.get('/teamlist/:tournamentId', async (req, res) => {
             path: 'tournament',
             select: 'killpoints name pointstable' // Include only specific fields from 'tournament'
         });
-        console.log(team)
         res.status(200).json({ team });
     } catch (error) {
         res.status(500).json({ message: 'Error fetching team list', error });
