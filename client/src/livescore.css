@@ -23,7 +23,7 @@
     font-size: 14px;
   }
   table tbody{
-    background: #242424;
+    background: #24242495;
     color: #dedbdb;
   }
   
@@ -55,6 +55,7 @@
   }
   .colorexplain{
     background: black;
+    color: #dedbdb;
     display: flex;
     justify-content: space-around;
     align-items: center;
