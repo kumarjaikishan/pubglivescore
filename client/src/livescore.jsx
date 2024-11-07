@@ -12,8 +12,10 @@ const TournamentScore = () => {
     fetchTeams();
 
     // Connect to WebSocket server
-    // const ws = new WebSocket('http://localhost:5006');
-    const ws = new WebSocket('/');
+    // const ws = new WebSocket('ws://localhost:5006');
+    // const ws = new WebSocket('ws://localhost:5006');
+    const ws = new WebSocket('http://localhost:5006/ws');
+    // const ws = new WebSocket('/');
 
     setConnectionStatus('connecting'); // When starting connection
 
