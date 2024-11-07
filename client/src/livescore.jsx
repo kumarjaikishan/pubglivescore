@@ -14,8 +14,8 @@ const TournamentScore = () => {
     // Connect to WebSocket server
     // const ws = new WebSocket('ws://localhost:5006');
     // const ws = new WebSocket('ws://localhost:5006');
-    // const ws = new WebSocket('http://localhost:5006/ws');
-    const ws = new WebSocket('/ws');
+    const ws = new WebSocket('wss://127.0.0.1:5006');
+    // const ws = new WebSocket('/ws');
     // const ws = new WebSocket('/');
 
     setConnectionStatus('connecting'); // When starting connection
