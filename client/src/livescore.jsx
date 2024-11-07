@@ -10,7 +10,7 @@ const TournamentScore = () => {
   const [socket, setSocket] = useState(null);
   const [connectedClients, setConnectedClients] = useState(0);
   const [connectionStatus, setConnectionStatus] = useState('disconnected'); // Track connection status
-  const endpoint = 'http://localhost:5006';
+  const endpoint = '/';
 
   useEffect(() => {
     fetchTeams(); // Fetch teams initially
