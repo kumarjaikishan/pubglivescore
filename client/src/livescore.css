@@ -1,0 +1,71 @@
+/* Basic styles */
+.tournament-score {
+    font-family: Arial, sans-serif;
+    text-align: center;
+    padding: 20px;
+  }
+  
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+  }
+  
+  table th, table td {
+    padding: 12px;
+    border: 1px solid #ddd;
+    text-align: center;
+  }
+  
+  table th {
+    background-color: #f2f2f2;
+    color: black;
+  }
+  
+  .player-status {
+    display: flex;
+    justify-content: center;
+    gap: 5px;
+  }
+  
+  .player-bar {
+    width: 5px;
+    height: 20px;
+    border-radius: 3px;
+  }
+  
+  .player-bar.alive {
+    background-color: white;
+  }
+  
+  .player-bar.knocked {
+    background-color: red;
+  }
+  
+  .player-bar.eliminated {
+    background-color: grey;
+  }
+  
+  /* Transition animations */
+  .row-enter {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  
+  .row-enter-active {
+    opacity: 1;
+    transform: translateY(0);
+    transition: opacity 300ms ease, transform 300ms ease;
+  }
+  
+  .row-exit {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  
+  .row-exit-active {
+    opacity: 0;
+    transform: translateY(-20px);
+    transition: opacity 300ms ease, transform 300ms ease;
+  }
+  

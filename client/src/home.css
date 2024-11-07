@@ -1,0 +1,17 @@
+.home{
+
+    span{
+        margin: 0 10px;
+        
+        display: inline-block;
+    }
+    span:nth-child(1){
+        width: 100px;
+    }
+    span:nth-child(2),
+    span:nth-child(3){
+        border: 1px solid white;
+        width: 50px;
+        cursor: pointer;
+    }
+}
