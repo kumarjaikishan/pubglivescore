@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { useParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import './livescore.css';
@@ -16,8 +16,9 @@ const TournamentScore = () => {
     let pingInterval;
 
     const connectWebSocket = () => {
+     ws= useMemo(()=> new WebSocket('https://livescore.battlefiesta.in'))
       // ws = new WebSocket('https://livescore.battlefiesta.in');
-      ws = new WebSocket('/');
+      // ws = new WebSocket('/');
       setConnectionStatus('connecting');
 
       ws.onopen = () => {
