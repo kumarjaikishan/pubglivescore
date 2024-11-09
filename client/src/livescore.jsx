@@ -11,30 +11,28 @@ const TournamentScore = () => {
 
   useEffect(() => {
     fetchTeams();
-
+  
     let ws;
     let pingInterval;
-
+  
     const connectWebSocket = () => {
-     ws= useMemo(()=> new WebSocket('https://livescore.battlefiesta.in'))
-      // ws = new WebSocket('https://livescore.battlefiesta.in');
-      // ws = new WebSocket('/');
+      ws = new WebSocket('https://livescore.battlefiesta.in');
       setConnectionStatus('connecting');
-
+  
       ws.onopen = () => {
         setConnectionStatus('connected');
         ws.send(JSON.stringify({ tournamentId }));
-
-        // Send a ping message every 30 seconds to keep the connection alive
+  
+        // Send a ping message every 25 seconds to keep the connection alive
         pingInterval = setInterval(() => {
           ws.send(JSON.stringify({ type: 'ping' }));
         }, 25000);
       };
-
+  
       ws.onmessage = (event) => {
         try {
           const data = JSON.parse(event.data);
-
+  
           if (data.type === 'statusUpdate' || data.type === 'scoreUpdate') {
             setTeams((prevTeams) =>
               prevTeams
@@ -48,21 +46,22 @@ const TournamentScore = () => {
           console.error('Error parsing WebSocket message:', error);
         }
       };
-
+  
       ws.onclose = () => {
         setConnectionStatus('disconnected');
         clearInterval(pingInterval);
         setTimeout(connectWebSocket, 5000);
       };
     };
-
+  
     connectWebSocket();
-
+  
     return () => {
       ws.close();
       clearInterval(pingInterval);
     };
   }, [tournamentId]);
+  
 
   const fetchTeams = async () => {
     try {
