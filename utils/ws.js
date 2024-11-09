@@ -1,88 +1,67 @@
-const WebSocket = require('ws');
+// websocket.js
+const { Server } = require("socket.io");
 
-// Store connections by tournament ID
-const clientsByTournament = {};
+let wsconnecteduser = 0;
+let roomid = [];
+let io;
 
-const initializeWebSocket = (server) => {
-    const wss = new WebSocket.Server({ server });
-
-    // Log the WebSocket port once the server is started
-    wss.on('listening', () => {
-        const address = server.address();
-        console.log(`WebSocket server running on port ${address.port}`);
+function initializeWebSocket(server) {
+    io = new Server(server, {
+        cors: {
+            origin: '*',
+            methods: ["GET", "POST"],
+            credentials: true
+        }
     });
 
-    // WebSocket connection handler
-    wss.on('connection', (ws, req) => {
-        let tournamentId = null; // Track the tournamentId for this specific connection
+    io.on('connection', (socket) => {
+        wsconnecteduser++;
+        // console.log("Connected user count:", wsconnecteduser);
+        socket.emit("connectedcount", wsconnecteduser);
 
-        ws.on('message', (message) => {
-            const { tournamentId: receivedTournamentId } = JSON.parse(message);
+        socket.roomsJoined = [];
 
-            tournamentId = receivedTournamentId; // Save the tournamentId for this connection
+        socket.on('roomId', (data) => {
+            socket.join(data);
+            socket.roomsJoined.push(data);
 
-            // Ensure we have a list of clients for this tournament ID
-            if (!clientsByTournament[tournamentId]) {
-                clientsByTournament[tournamentId] = new Set();
+            const room = roomid.find(r => r.id === data);
+
+            if (!room) {
+                roomid.push({ id: data, count: 1 });
+            } else {
+                room.count++;
             }
 
-            // Track the WebSocket connection by tournament ID
-            clientsByTournament[tournamentId].add(ws);
+            const updatedRoom = roomid.find(r => r.id === data);
+            io.to(data).emit("connectedcount", updatedRoom.count);
 
-            // Log the current number of connected users for this tournament
-            console.log(`User connected to tournament: ${tournamentId}`);
-            console.log(`Total users connected to tournament ${tournamentId}: ${clientsByTournament[tournamentId].size}`);
+            // console.log("Room details:", roomid);
+        });
 
-            // Send the number of connected clients to all clients of this tournament
-            broadcastClientCount(tournamentId);
+        socket.on('disconnect', () => {
+            wsconnecteduser--;
+            // console.log("User disconnected:", socket.id);
 
-            // Clean up on WebSocket close
-            ws.on('close', () => {
-                clientsByTournament[tournamentId].delete(ws);
-                console.log(`User disconnected from tournament: ${tournamentId}`);
-                console.log(`Total users connected to tournament ${tournamentId}: ${clientsByTournament[tournamentId].size}`);
-
-                // Send the updated number of connected clients to all clients
-                broadcastClientCount(tournamentId);
+            socket.roomsJoined.forEach(roomId => {
+                const room = roomid.find(r => r.id === roomId);
+                if (room) {
+                    room.count--;
+                    if (room.count === 0) {
+                        roomid = roomid.filter(r => r.id !== roomId);
+                    }
+                    io.to(roomId).emit("connectedcount", room.count);
+                }
             });
+
+            // console.log("Updated room details after disconnect:", roomid);
         });
     });
+
+}
+const socketfunc = (receivee, flag, data) => {
+    // console.log("socketfunc runned", receivee)
+    io.to(receivee).emit(flag, data);
 };
 
-// Utility function to broadcast the connected client count
-const broadcastClientCount = (tournamentId) => {
-    const clients = clientsByTournament[tournamentId];
-
-    if (clients && clients.size > 0) {
-        const clientCountMessage = {
-            type: 'clientsCount',
-            count: clients.size, // Send the number of connected clients
-        };
-
-        // Broadcast the client count to all connected clients of the tournament
-        clients.forEach((client) => {
-            if (client.readyState === WebSocket.OPEN) {
-                client.send(JSON.stringify(clientCountMessage));
-            }
-        });
-    } else {
-        console.log(`No clients connected to tournament ${tournamentId}`);
-    }
-};
-
-// Utility function to send updates to clients
-const broadcastUpdate = (tournamentId, data) => {
-    const clients = clientsByTournament[tournamentId];
-
-    if (clients && clients.size > 0) {
-        clients.forEach((client) => {
-            if (client.readyState === WebSocket.OPEN) {
-                client.send(JSON.stringify(data));
-            }
-        });
-    } else {
-        console.log(`No clients connected to tournament ${tournamentId}`);
-    }
-};
-
-module.exports = { initializeWebSocket, broadcastUpdate };
+module.exports = { initializeWebSocket,socketfunc };

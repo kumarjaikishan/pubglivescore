@@ -2,8 +2,11 @@ const express = require('express');
 const router = express.Router();
 const Team = require('../models/team_model');
 const Tournament = require('../models/tournament_model');
-const { broadcastUpdate } = require('../utils/ws');
-const WebSocket = require('ws');
+// const { broadcastUpdate } = require('../utils/ws');
+// const WebSocket = require('ws');
+// const {initializeWebSocket} = require('../utils/ws');
+// const { socketfunc } = require('../index'); 
+const { socketfunc } = require('../utils/ws');
 
 
 router.get('/teamlist/:tournamentId', async (req, res) => {
@@ -85,9 +88,8 @@ router.put('/updatestatus/:id', async (req, res) => {
         if (!team) {
             return res.status(404).json({ message: 'Team not found' });
         }
-
-        broadcastUpdate(team.tournament, { type: 'statusUpdate', team });
-
+         socketfunc(team.tournament.toString(), "teamUpdate", team)
+     
         res.json({ message: 'Updated successfully' });
     } catch (error) {
         console.error('Error updating status:', error);
@@ -108,8 +110,8 @@ router.put('/updatescore/:id', async (req, res) => {
         if (!team) {
             return res.status(404).json({ message: 'Team not found' });
         }
-        broadcastUpdate(team.tournament, { type: 'scoreUpdate', team });
 
+        socketfunc(team.tournament.toString(), "teamUpdate", team)
         res.json({ message: 'Updated successfully' });
     } catch (error) {
         res.status(500).json({ message: 'Error updating score', error });

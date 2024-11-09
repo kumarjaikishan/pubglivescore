@@ -1,7 +1,8 @@
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import './livescore.css';
+import { io } from "socket.io-client";
 
 const TournamentScore = () => {
   const { tournamentId } = useParams();
@@ -9,80 +10,62 @@ const TournamentScore = () => {
   const [connectedClients, setConnectedClients] = useState(0);
   const [connectionStatus, setConnectionStatus] = useState('disconnected');
 
+  // Initialize socket connection once on mount
   useEffect(() => {
-    fetchTeams();
-  
-    let ws;
-    let pingInterval;
-  
-    const connectWebSocket = () => {
-      ws = new WebSocket('https://livescore.battlefiesta.in');
-      setConnectionStatus('connecting');
-  
-      ws.onopen = () => {
-        setConnectionStatus('connected');
-        ws.send(JSON.stringify({ tournamentId }));
-  
-        // Send a ping message every 25 seconds to keep the connection alive
-        pingInterval = setInterval(() => {
-          ws.send(JSON.stringify({ type: 'ping' }));
-        }, 25000);
-      };
-  
-      ws.onmessage = (event) => {
-        try {
-          const data = JSON.parse(event.data);
-  
-          if (data.type === 'statusUpdate' || data.type === 'scoreUpdate') {
-            setTeams((prevTeams) =>
-              prevTeams
-                .map((t) => (t._id === data.team._id ? { ...t, ...data.team } : t))
-                .sort((a, b) => b.points - a.points)
-            );
-          } else if (data.type === 'clientsCount') {
-            setConnectedClients(data.count);
-          }
-        } catch (error) {
-          console.error('Error parsing WebSocket message:', error);
-        }
-      };
-  
-      ws.onclose = () => {
-        setConnectionStatus('disconnected');
-        clearInterval(pingInterval);
-        setTimeout(connectWebSocket, 5000);
-      };
-    };
-  
-    connectWebSocket();
-  
+    // const socket = io('http://localhost:5006');
+    const socket = io('https://livescore.battlefiesta.in');
+    setConnectionStatus('connecting');
+
+    socket.on('connect', () => {
+      console.log(`Connected with socket ID: ${socket.id}`);
+      setConnectionStatus('connected');
+    });
+
+    socket.emit("roomId", tournamentId);
+
+    socket.on('teamUpdate', (data) => {
+      // console.log("Data received:", data);
+      setTeams((prevTeams) => {
+        // Update the team data only if something has changed
+        const updatedTeams = prevTeams.map((t) => 
+          t._id === data._id ? { ...t, ...data } : t
+        ).sort((a, b) => b.points - a.points);
+
+        return updatedTeams;
+      });
+    });
+
+    socket.on('connectedcount', (data) => {
+      setConnectedClients(data);
+    });
+
+    // Clean up on unmount
     return () => {
-      ws.close();
-      clearInterval(pingInterval);
+      socket.disconnect();
     };
   }, [tournamentId]);
-  
 
-  const fetchTeams = async () => {
-    try {
-      const response = await fetch(`${import.meta.env.VITE_API_ADDRESS}teamlist/${tournamentId}`);
-      const data = await response.json();
-      setTeams(data.team.sort((a, b) => b.points - a.points));
-    } catch (error) {
-      console.error('Error fetching teams:', error);
-    }
-  };
+  // Fetch initial team data
+  useEffect(() => {
+    const fetchTeams = async () => {
+      try {
+        const response = await fetch(`${import.meta.env.VITE_API_ADDRESS}teamlist/${tournamentId}`);
+        const data = await response.json();
+        setTeams(data.team.sort((a, b) => b.points - a.points));
+      } catch (error) {
+        console.error('Error fetching teams:', error);
+      }
+    };
+
+    fetchTeams();
+  }, [tournamentId]);
 
   const wifiIconColor = () => {
     switch (connectionStatus) {
-      case 'disconnected':
-        return 'red';
-      case 'connecting':
-        return 'yellow';
-      case 'connected':
-        return 'green';
-      default:
-        return 'red';
+      case 'disconnected': return 'red';
+      case 'connecting': return 'yellow';
+      case 'connected': return 'green';
+      default: return 'red';
     }
   };
 
@@ -100,6 +83,7 @@ const TournamentScore = () => {
         ></i>
         <p style={{ marginLeft: '20px' }}>Connected Clients: {connectedClients}</p>
       </div>
+
       <div className="scoreboard">
         <div className="header">
           <span>#</span>
@@ -109,37 +93,41 @@ const TournamentScore = () => {
           <span>ELIMS</span>
         </div>
         <AnimatePresence>
-          {teams && teams.map((team, index) => (
-            <motion.div
-              key={team._id}
-              className="row"
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 10 }}
-              transition={{ duration: 0.5 }}
-            >
-              <span>#{index + 1}</span>
-              <span style={{ textAlign: 'left' }}>{team.teamName}</span>
-              <span>{team.points}</span>
-              <span className="player-status">
-                {team.players.map((status, idx) => (
-                  <span
-                    key={idx}
-                    className={`player-bar ${status}`}
-                    title={status.charAt(0).toUpperCase() + status.slice(1)}
-                  ></span>
-                ))}
-              </span>
-              <span>{team.kills}</span>
-            </motion.div>
-          ))}
+          {teams.length === 0 ? (
+            <p>Loading teams...</p>  // Add a loading state
+          ) : (
+            teams.map((team, index) => (
+              <motion.div
+                key={team._id}
+                className="row"
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 10 }}
+                transition={{ duration: 0.5 }}
+              >
+                <span>#{index + 1}</span>
+                <span style={{ textAlign: 'left' }}>{team.teamName}</span>
+                <span>{team.points}</span>
+                <span className="player-status">
+                  {team.players.map((status, idx) => (
+                    <span
+                      key={idx}
+                      className={`player-bar ${status}`}
+                      title={status.charAt(0).toUpperCase() + status.slice(1)}
+                    ></span>
+                  ))}
+                </span>
+                <span>{team.kills}</span>
+              </motion.div>
+            ))
+          )}
         </AnimatePresence>
-
       </div>
+
       <div className="colorexplain">
-        <span > <span className='alive'></span> <span>Alive</span></span>
-        <span > <span className='knocked'></span> <span>Knocked</span></span>
-        <span > <span className='eliminated'></span> <span>Eliminated</span></span>
+        <span><span className='alive'></span> <span>Alive</span></span>
+        <span><span className='knocked'></span> <span>Knocked</span></span>
+        <span><span className='eliminated'></span> <span>Eliminated</span></span>
       </div>
     </div>
   );
