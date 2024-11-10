@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { TbArrowForwardUp } from "react-icons/tb";
 import { MdModeEditOutline } from "react-icons/md";
+import Button from '@mui/material/Button';
 import './home.css'
 
 const Home = () => {
@@ -34,14 +35,33 @@ const Home = () => {
 
     return (
         <div className='home'>
-            {tournalist?.map((tourn, ind) => (
-                <div key={ind}>
-                    <span>{tourn.tournName}</span>
-                    <span onClick={() => redirectee(tourn._id)}><TbArrowForwardUp /> </span>
-                    <span onClick={() => redirecteedit(tourn._id)}><MdModeEditOutline /> </span>
-                </div>
-            ))}
+            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                <thead>
+                    <tr>
+                        <th>S.no</th>
+                        <th>Tournament Name</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {tournalist?.map((tourn, ind) => (
+                        <tr key={ind}>
+                            <td>{ind + 1}</td>
+                            <td>{tourn.tournName}</td>
+                            <td>
+                                <Button variant="outlined" onClick={()=> redirectee(tourn._id)} startIcon={<TbArrowForwardUp />}>
+                                    Live
+                                </Button>
+                                <Button variant="outlined" onClick={()=> redirecteedit(tourn._id)} startIcon={<MdModeEditOutline />}>
+                                    Edit
+                                </Button>
+                            </td>
+                        </tr>
+                    ))}
+                </tbody>
+            </table>
         </div>
+
     );
 };
 

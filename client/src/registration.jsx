@@ -1,144 +1,45 @@
 import { useState, useEffect } from 'react';
 
 const TeamForm = () => {
-  // Default state for creating or editing a team
   const [tournamentName, settournamentName] = useState('');
   const [killpoints, setkillpoints] = useState(0);
   const [tournalist, settournalist] = useState([]);
-  const [tournament, settournament] = useState('672b437cf228f39733c4b7b7')
+  const [tournament, settournament] = useState('672b437cf228f39733c4b7b7');
   const [teamName, setTeamName] = useState('');
-  const [points, setPoints] = useState(0);
-  const [kills, setKills] = useState(0);
-  const [players, setPlayers] = useState(['alive', 'alive', 'alive', 'alive']); // Array of player statuses
+  const [players, setPlayers] = useState(['alive', 'alive', 'alive', 'alive']);
   const [logoPreview, setLogoPreview] = useState('');
   const [teamList, setTeamList] = useState([]);
-  const [editingTeam, setEditingTeam] = useState(null); // Track the team being edited
+  const [editingTeam, setEditingTeam] = useState(null);
 
-  // Fetch registered teams on component mount
+  // Fetch tournament data and team list
   useEffect(() => {
     fetchTournament();
   }, []);
- 
+
   useEffect(() => {
     fetchTournamentone();
   }, [tournament]);
+
   const fetchTournament = async () => {
     try {
       const response = await fetch(`${import.meta.env.VITE_API_ADDRESS}tournalist`);
       const data = await response.json();
-      console.log(data)
-      settournalist(data.tournament); // Set the fetched teams
+      settournalist(data.tournament);
     } catch (error) {
-      console.error('Error fetching teams:', error);
+      console.error('Error fetching tournaments:', error);
     }
   };
+
   const fetchTournamentone = async () => {
     try {
       const response = await fetch(`${import.meta.env.VITE_API_ADDRESS}teamlist/${tournament}`);
       const data = await response.json();
-      console.log(data)
-      setTeamList(data.team); // Set the fetched teams
+      setTeamList(data.team);
     } catch (error) {
       console.error('Error fetching teams:', error);
     }
   };
-  // Handle input changes
-  const handleInputChange = (setter) => (event) => setter(event.target.value);
 
-  // Handle players array changes (update status)
-  const handlePlayerStatusChange = (index, status) => {
-    const updatedPlayers = [...players];
-    updatedPlayers[index] = status; // Update the status for the player
-    setPlayers(updatedPlayers);
-  };
-
-  // Add a new player (add a new 'alive' status to the array)
-  const addPlayer = () => {
-    setPlayers([...players, 'alive']);
-  };
-
-  // Remove a player (remove the status from the array)
-  const removePlayer = (index) => {
-    const updatedPlayers = players.filter((_, idx) => idx !== index);
-    setPlayers(updatedPlayers);
-  };
-
-  // Handle file input for the team logo
-  const handleLogoUpload = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setLogoPreview(URL.createObjectURL(file));
-    }
-  };
-
-  // Handle form submission (submit the team data)
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    const formData = { tournament, teamName, points, kills, players, logo: logoPreview };
-
-    try {
-      let response;
-      if (editingTeam) {
-        // Update existing team
-        response = await fetch(`${import.meta.env.VITE_API_ADDRESS}update/${editingTeam._id}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(formData),
-        });
-      } else {
-        // Register new team
-        response = await fetch(`${import.meta.env.VITE_API_ADDRESS}register`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(formData),
-        });
-      }
-
-      if (response.ok) {
-        const newOrUpdatedTeam = await response.json();
-        if (editingTeam) {
-          setTeamList((prevList) =>
-            prevList.map((team) => (team._id === editingTeam._id ? newOrUpdatedTeam : team))
-          );
-        } else {
-          setTeamList((prevList) => [...prevList, newOrUpdatedTeam]); // Add new team to the list
-        }
-        resetForm(); // Reset the form
-        setEditingTeam(null); // Clear the editing state
-      } else {
-        console.error('Failed to submit team data');
-      }
-    } catch (error) {
-      console.error('Error submitting team data:', error);
-    }
-  };
-
-  // Reset form after submission
-  const resetForm = () => {
-    setTeamName('');
-    setPoints(0);
-    setKills(0);
-    setPlayers(['alive', 'alive', 'alive', 'alive']); // Reset players to default
-    setLogoPreview('');
-  };
-
-  // Handle team deletion
-  const handleDeleteTeam = async (teamId) => {
-    try {
-      const response = await fetch(`${import.meta.env.VITE_API_ADDRESS}delete/${teamId}`, {
-        method: 'DELETE',
-      });
-
-      if (response.ok) {
-        setTeamList((prevList) => prevList.filter((team) => team._id !== teamId));
-        alert('Team deleted successfully');
-      } else {
-        console.error('Failed to delete team');
-      }
-    } catch (error) {
-      console.error('Error deleting team:', error);
-    }
-  };
   const addtournament = async () => {
     try {
       const response = await fetch(`${import.meta.env.VITE_API_ADDRESS}addtournament`, {
@@ -157,25 +58,142 @@ const TeamForm = () => {
     }
   };
 
+  // Handle form submission
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const formData = { tournament, teamName, players, logo: logoPreview };
+
+    try {
+      let response;
+      if (editingTeam) {
+        response = await fetch(`${import.meta.env.VITE_API_ADDRESS}updateteam/${editingTeam._id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(formData),
+        });
+      } else {
+        response = await fetch(`${import.meta.env.VITE_API_ADDRESS}register`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(formData),
+        });
+      }
+
+      if (response.ok) {
+        const newOrUpdatedTeam = await response.json();
+        // if (editingTeam) {
+        //   setTeamList((prevList) =>
+        //     prevList.map((team) => (team._id === editingTeam._id ? newOrUpdatedTeam : team))
+        //   );
+        // } else {
+        //   setTeamList((prevList) => [...prevList, newOrUpdatedTeam]);
+        // }
+        fetchTournamentone();
+        resetForm();
+        setEditingTeam(null);
+      } else {
+        console.error('Failed to submit team data');
+      }
+    } catch (error) {
+      console.error('Error submitting team data:', error);
+    }
+  };
+
+  // Reset form after submission
+  const resetForm = () => {
+    setTeamName('');
+    setPlayers(['alive', 'alive', 'alive', 'alive']);
+    setLogoPreview('');
+  };
+
+  // Move team up based on order
+  const moveTeamUp = (index) => {
+    if (index > 0) {
+      const updatedList = [...teamList];
+
+      // Swap the order between the current team and the previous team
+      const temp = updatedList[index].order;
+      updatedList[index].order = updatedList[index - 1].order;
+      updatedList[index - 1].order = temp;
+
+      // Re-sort the list based on the updated order field
+      updatedList.sort((a, b) => a.order - b.order);
+
+      setTeamList(updatedList);
+    }
+  };
+
+  // Move team down based on order
+  const moveTeamDown = (index) => {
+    if (index < teamList.length - 1) {
+      const updatedList = [...teamList];
+
+      // Swap the order between the current team and the next team
+      const temp = updatedList[index].order;
+      updatedList[index].order = updatedList[index + 1].order;
+      updatedList[index + 1].order = temp;
+
+      // Re-sort the list based on the updated order field
+      updatedList.sort((a, b) => a.order - b.order);
+
+      setTeamList(updatedList);
+    }
+  };
+
+
+  // Handle team deletion
+  const handleDeleteTeam = async (teamId) => {
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_ADDRESS}delete/${teamId}`, {
+        method: 'DELETE',
+      });
+
+      if (response.ok) {
+        setTeamList((prevList) => prevList.filter((team) => team._id !== teamId));
+        alert('Team deleted successfully');
+      } else {
+        console.error('Failed to delete team');
+      }
+    } catch (error) {
+      console.error('Error deleting team:', error);
+    }
+  };
+  const savechanges = async (teamId) => {
+    // console.log(teamList)
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_ADDRESS}savelist`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(teamList),
+      });
+
+      if (response.ok) {
+        // setTeamList((prevList) => prevList.filter((team) => team._id !== teamId));
+        alert('Team Updated successfully');
+      } else {
+        console.error('Failed to delete team');
+      }
+    } catch (error) {
+      console.error('Error deleting team:', error);
+    }
+  };
+
   // Handle team editing
   const handleEditTeam = (team) => {
     setEditingTeam(team);
     setTeamName(team.teamName);
-    setPoints(team.points);
-    setKills(team.kills);
-    setPlayers(team.players); // Pre-populate players (now an array of statuses)
-    setLogoPreview(team.logo); // Pre-populate the logo
+    setPlayers(team.players);
+    setLogoPreview(team.logo);
   };
 
   return (
     <div className='register'>
-
       <label>
         Tournament Name
         <input
           type="text"
           value={tournamentName}
-          onChange={handleInputChange(settournamentName)}
+          onChange={(e) => settournamentName(e.target.value)}
           required
         />
       </label>
@@ -184,85 +202,97 @@ const TeamForm = () => {
         <input
           type="number"
           value={killpoints}
-          onChange={handleInputChange(setkillpoints)}
+          onChange={(e) => setkillpoints(e.target.value)}
           required
         />
       </label>
       <button onClick={addtournament}>Create</button>
-
+      <br /> <br />
       <div>
-        <select
-          // value={status}
-          onChange={(e) => settournament(e.target.value)}
-        >
-          {tournalist && tournalist.map((tourna, idx) => (
-                      <option value={tourna._id} key={idx}>{tourna.tournName}</option>
-             ))}
-        </select>
+        <label>
+          Select Tournament :
+          <select
+            style={{ width: '250px' }}
+            onChange={(e) => settournament(e.target.value)}
+          >
+            {tournalist && tournalist.map((tourna, idx) => (
+              <option value={tourna._id} key={idx}>{tourna.tournName}</option>
+            ))}
+          </select>
+        </label>
       </div>
 
       <form onSubmit={handleSubmit} style={{ maxWidth: '600px', margin: '0 auto' }}>
         <h2>{editingTeam ? 'Edit Team' : 'Register Team'}</h2>
-
         <label>
           Team Name
           <input
             type="text"
             value={teamName}
-            onChange={handleInputChange(setTeamName)}
+            onChange={(e) => setTeamName(e.target.value)}
             required
           />
         </label>
-
-        <label>
-          Points
-          <input
-            type="number"
-            value={points}
-            onChange={handleInputChange(setPoints)}
-            required
-          />
-        </label>
-
-        <label>
-          Kills
-          <input
-            type="number"
-            value={kills}
-            onChange={handleInputChange(setKills)}
-            required
-          />
-        </label>
-
         <div>
           <h3>Team Logo</h3>
           <input
             type="file"
             accept="image/*"
-            onChange={handleLogoUpload}
+            onChange={(e) => setLogoPreview(URL.createObjectURL(e.target.files[0]))}
           />
           {logoPreview && <img src={logoPreview} alt="Team Logo" style={{ width: '100px', marginTop: '10px' }} />}
         </div>
-
         <button type="submit">{editingTeam ? 'Update Team' : 'Register Team'}</button>
       </form>
 
       <div>
         <h3>Registered Teams</h3>
-        <div>
-          {teamList && teamList.map((team) => (
-            <div key={team._id}>
-              <strong>{team.teamName}</strong> - Points: {team.points}, Kills: {team.kills}
-              <button onClick={() => handleEditTeam(team)}>Edit</button>
-              <button onClick={() => handleDeleteTeam(team._id)} style={{ backgroundColor: 'red', color: 'white' }}>
-                Delete Team
-              </button>
-            </div>
-          ))}
-        </div>
+        <button onClick={savechanges}>Save</button>
+        <table style={{ width: '100%' }}>
+          <thead>
+            <tr>
+              <th>S.no</th>
+              <th>Team Name</th>
+              <th>Actions</th>
+              <th>Move</th>
+            </tr>
+          </thead>
+          <tbody>
+            {teamList && teamList.sort((a, b) => b.order - a.order).map((team, ind) => (
+              <tr key={team._id}>
+                <td>{ind + 1}</td>
+                <td>{team.teamName}</td>
+                <td>
+                  <button onClick={() => handleEditTeam(team)}>Edit</button>
+                  <button
+                    onClick={() => handleDeleteTeam(team._id)}
+                    style={{ backgroundColor: 'red', color: 'white', marginLeft: '10px' }}
+                  >
+                    Delete
+                  </button>
+                </td>
+                <td>
+                  <button
+                    onClick={() => moveTeamUp(ind)}
+                    style={{ marginLeft: '10px' }}
+                    disabled={ind === 0}
+                  >
+                    Up
+                  </button>
+                  <button
+                    onClick={() => moveTeamDown(ind)}
+                    style={{ marginLeft: '10px' }}
+                    disabled={ind === teamList.length - 1}
+                  >
+                    Down
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
     </div>
-
   );
 };
 

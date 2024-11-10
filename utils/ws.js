@@ -1,8 +1,8 @@
 // websocket.js
 const { Server } = require("socket.io");
 
-let wsconnecteduser = 0;
 let roomid = [];
+let modroomId = [];
 let io;
 
 function initializeWebSocket(server) {
@@ -15,11 +15,9 @@ function initializeWebSocket(server) {
     });
 
     io.on('connection', (socket) => {
-        wsconnecteduser++;
-        // console.log("Connected user count:", wsconnecteduser);
-        socket.emit("connectedcount", wsconnecteduser);
 
         socket.roomsJoined = [];
+        socket.modroomsJoined = [];
 
         socket.on('roomId', (data) => {
             socket.join(data);
@@ -38,11 +36,25 @@ function initializeWebSocket(server) {
 
             // console.log("Room details:", roomid);
         });
+        socket.on('modroomId', (data) => {
+            socket.join(data);
+            socket.modroomsJoined.push(data);
+
+            const room = modroomId.find(r => r.id === data);
+
+            if (!room) {
+                modroomId.push({ id: data, count: 1 });
+            } else {
+                room.count++;
+            }
+
+            const updatedRoom = modroomId.find(r => r.id === data);
+            io.to(data).emit("modconnectedcount", updatedRoom.count);
+
+            // console.log("Mod Room details:", modroomId);
+        });
 
         socket.on('disconnect', () => {
-            wsconnecteduser--;
-            // console.log("User disconnected:", socket.id);
-
             socket.roomsJoined.forEach(roomId => {
                 const room = roomid.find(r => r.id === roomId);
                 if (room) {
@@ -54,14 +66,25 @@ function initializeWebSocket(server) {
                 }
             });
 
+            socket.modroomsJoined.forEach(modRoomId => {
+                const modRoom = modroomId.find(r => r.id === modRoomId);
+                if (modRoom) {
+                    modRoom.count--;
+                    if (modRoom.count === 0) {
+                        modroomId = modroomId.filter(r => r.id !== modRoomId);
+                    }
+                    io.to(modRoomId).emit("modconnectedcount", modRoom.count);
+                }
+            });
+
             // console.log("Updated room details after disconnect:", roomid);
         });
     });
-
 }
+
 const socketfunc = (receivee, flag, data) => {
     // console.log("socketfunc runned", receivee)
     io.to(receivee).emit(flag, data);
 };
 
-module.exports = { initializeWebSocket,socketfunc };
+module.exports = { initializeWebSocket, socketfunc };

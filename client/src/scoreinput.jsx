@@ -1,12 +1,58 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import './scoreinput.css';
+import { io } from "socket.io-client";
 
 const TournamentInput = () => {
   const { tournamentId } = useParams(); 
   
   const [teams, setTeams] = useState([]);
   const killpoints = teams[0]?.tournament?.killpoints || 0;
+  const [connectedClients, setConnectedClients] = useState(0);
+  const [connectionStatus, setConnectionStatus] = useState('disconnected');
+
+  const wifiIconColor = () => {
+    switch (connectionStatus) {
+      case 'disconnected': return 'red';
+      case 'connecting': return 'yellow';
+      case 'connected': return 'green';
+      default: return 'red';
+    }
+  };
+
+  useEffect(() => {
+    const socket = io('https://livescore.battlefiesta.in/');
+    // const socket = io('https://livescore.battlefiesta.in');
+    setConnectionStatus('connecting');
+
+    socket.on('connect', () => {
+      // console.log(`Connected with socket ID: ${socket.id}`);
+      setConnectionStatus('connected');
+    });
+
+    socket.emit("modroomId", tournamentId);
+
+    socket.on('teamUpdate', (data) => {
+      // console.log("Data received:", data);
+      setTeams((prevTeams) => {
+        // Update the team data only if something has changed
+        const updatedTeams = prevTeams.map((t) => 
+          t._id === data._id ? { ...t, ...data } : t
+        );
+
+        return updatedTeams;
+      });
+    });
+
+    socket.on('modconnectedcount', (data) => {
+      setConnectedClients(data);
+    });
+
+    // Clean up on unmount
+    return () => {
+      socket.disconnect();
+    };
+  }, [tournamentId]);
 
   useEffect(() => {
     const fetchTeams = async () => {
@@ -58,7 +104,6 @@ const TournamentInput = () => {
   };
 
   const updateKills = async (teamId, kills) => {
-    console.log("score update")
     setTeams((prevTeams) =>
       prevTeams.map((team) =>
         team._id === teamId ? { ...team, kills, points: kills * killpoints } : team
@@ -87,6 +132,18 @@ const TournamentInput = () => {
 
   return (
     <div className="tournament-input">
+    <div id='status'>
+        <i>Status: </i>
+        <i
+          className="fa fa-wifi"
+          aria-hidden="true"
+          style={{
+            color: wifiIconColor(),
+            fontSize: '2em',
+          }}
+        ></i>
+        <i style={{ marginLeft: '20px' }}>Connected Clients: {connectedClients}</i>
+      </div>
       <h2>PUBG Tournament Score Input</h2>
       <table>
         <thead>

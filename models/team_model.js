@@ -9,6 +9,7 @@ const teamSchema = new mongoose.Schema({
   teamName: { type: String, required: true },
   points: { type: Number, default: 0 },
   kills: { type: Number, default: 0 },
+  order: { type: Number },
   players: {
     type: [String],
     enum: ['alive', 'knocked', 'eliminated'],

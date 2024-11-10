@@ -13,11 +13,11 @@ const TournamentScore = () => {
   // Initialize socket connection once on mount
   useEffect(() => {
     // const socket = io('http://localhost:5006');
-    const socket = io('https://livescore.battlefiesta.in');
+    const socket = io('https://livescore.battlefiesta.in/');
     setConnectionStatus('connecting');
 
     socket.on('connect', () => {
-      console.log(`Connected with socket ID: ${socket.id}`);
+      // console.log(`Connected with socket ID: ${socket.id}`);
       setConnectionStatus('connected');
     });
 
@@ -81,7 +81,7 @@ const TournamentScore = () => {
             fontSize: '2em',
           }}
         ></i>
-        <p style={{ marginLeft: '20px' }}>Connected Clients: {connectedClients}</p>
+        <i style={{ marginLeft: '20px' }}>Connected Clients: {connectedClients}</i>
       </div>
 
       <div className="scoreboard">
