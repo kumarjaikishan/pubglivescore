@@ -7,7 +7,7 @@ const TournamentInput = () => {
   const { tournamentId } = useParams();
 
   const [teams, setTeams] = useState([]);
-  const [killpoints,setkillpoints]= useState([]);
+  const [killpoints, setkillpoints] = useState([]);
   const [connectedClients, setConnectedClients] = useState(0);
   const [connectionStatus, setConnectionStatus] = useState('disconnected');
 
@@ -58,7 +58,7 @@ const TournamentInput = () => {
       try {
         const response = await fetch(`${import.meta.env.VITE_API_ADDRESS}teamlist/${tournamentId}`);
         const data = await response.json();
-        console.log(data)
+        // console.log(data)
         setTeams(data.team); // Set the fetched teams
         setkillpoints(data.killpoints)
       } catch (error) {
@@ -71,7 +71,7 @@ const TournamentInput = () => {
 
   const updatePlayerStatus = async (teamId, playerIndex, status) => {
     let latestStatus;
-    setTeams((prevTeams) =>
+    await setTeams((prevTeams) =>
       prevTeams.map((team) => {
         if (team._id === teamId) {
           const newPlayers = [...team.players];
@@ -104,10 +104,6 @@ const TournamentInput = () => {
     }
   };
 
-  useEffect(() => {
-    console.log(teams)
-    console.log("killpoints:",killpoints)
-  }, [teams])
 
   const updateKills = async (teamId, kills) => {
     setTeams((prevTeams) =>
@@ -125,7 +121,7 @@ const TournamentInput = () => {
 
       if (!response.ok) throw new Error('Failed to update team');
       const data = await response.json();
-      console.log(data); // Log the response data from the server
+      // console.log(data); // Log the response data from the server
     } catch (error) {
       console.error('Error updating team:', error);
     }
@@ -162,7 +158,7 @@ const TournamentInput = () => {
           </tr>
         </thead>
         <tbody>
-        {!teams && <tr style={{color:'yellow'}}><td colSpan={5}>No Team Found</td> </tr> }
+          {!teams && <tr style={{ color: 'yellow' }}><td colSpan={5}>No Team Found</td> </tr>}
           {teams && teams.map((team, index) => (
             <tr key={team._id} className="team-row">
               <td>{index + 1}</td>
