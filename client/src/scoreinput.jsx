@@ -21,7 +21,7 @@ const TournamentInput = () => {
   };
 
   useEffect(() => {
-    const socket = io(import.meta.env.SOCKET);
+    const socket = io(import.meta.env.VITE_SOCKET);
     setConnectionStatus('connecting');
 
     socket.on('connect', () => {
