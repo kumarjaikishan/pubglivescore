@@ -12,7 +12,6 @@ const TournamentScore = () => {
 
   // Initialize socket connection once on mount
   useEffect(() => {
-    console.log(import.meta.env.SOCKET)
     const socket = io(import.meta.env.VITE_SOCKET);
     setConnectionStatus('connecting');
 
@@ -27,7 +26,7 @@ const TournamentScore = () => {
       // console.log("Data received:", data);
       setTeams((prevTeams) => {
         // Update the team data only if something has changed
-        const updatedTeams = prevTeams.map((t) => 
+        const updatedTeams = prevTeams.map((t) =>
           t._id === data._id ? { ...t, ...data } : t
         ).sort((a, b) => b.points - a.points);
 
@@ -89,39 +88,34 @@ const TournamentScore = () => {
           <span>#</span>
           <span style={{ textAlign: 'left' }}>TEAM</span>
           <span>PTS</span>
-          <span>ALIVE</span>
+          <span>STATUS</span>
           <span>ELIMS</span>
         </div>
-        <AnimatePresence>
-          {teams.length === 0 ? (
-            <p >No Team Found</p>  // Add a loading state
-          ) : (
-            teams.map((team, index) => (
-              <motion.div
-                key={team._id}
-                className="row"
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 10 }}
-                transition={{ duration: 0.5 }}
-              >
-                <span>#{index + 1}</span>
-                <span style={{ textAlign: 'left' }}>{team.teamName}</span>
-                <span>{team.points}</span>
-                <span className="player-status">
-                  {team.players.map((status, idx) => (
-                    <span
-                      key={idx}
-                      className={`player-bar ${status}`}
-                      title={status.charAt(0).toUpperCase() + status.slice(1)}
-                    ></span>
-                  ))}
-                </span>
-                <span>{team.kills}</span>
-              </motion.div>
-            ))
-          )}
-        </AnimatePresence>
+
+        {teams.length === 0 ? (
+          <p >No Team Found</p>  // Add a loading state
+        ) : (
+          teams.map((team, index) => (
+            <div
+              key={team._id}
+              className="row"
+            >
+              <span>{index + 1}</span>
+              <span style={{ textAlign: 'left' }}>{team.teamName}</span>
+              <span>{team.points}</span>
+              <span className="player-status">
+                {team.players.map((status, idx) => (
+                  <span
+                    key={idx}
+                    className={`player-bar ${status}`}
+                    title={status.charAt(0).toUpperCase() + status.slice(1)}
+                  ></span>
+                ))}
+              </span>
+              <span>{team.kills}</span>
+            </div>
+          ))
+        )}
       </div>
 
       <div className="colorexplain">

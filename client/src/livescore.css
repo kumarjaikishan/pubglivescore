@@ -9,33 +9,9 @@
     width: 100%;
     margin-top: 20px;
   }
-  .scoreboard{
-    background: #242424;
-    color: #dedbdb;
-  }
-
-  .score-header,
-  .score-row {
-    display: flex;
-    justify-content: space-around;
-    align-items: center;
-    border-bottom: 1px solid #ddd;
-    padding: 5px 0;
-  }
-
-  .score-cell {
-    flex: 1;
-    text-align: center;
-  }
 
   .team-name {
     text-align: left;
-  }
-
-  .score-header {
-    background-color: #f2f2f2;
-    color: black;
-    font-size: 14px;
   }
 
   .player-bar {
@@ -54,6 +30,74 @@
 
   .eliminated {
     background-color: red;
+  }
+
+  .scoreboard {
+    margin-top: 30px;
+
+    .header {
+      color: #242424;
+      padding: 5px 0;
+      background-color: #f2f2f2;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .header,
+    .row {
+      display: flex;
+      width: 300px;
+      /* justify-content: space-between; */
+
+      >span {
+        display: inline-block;
+        width: 50px;
+
+      }
+
+      >span:nth-child(1) {
+        /* border: 1px solid red; */
+        width: 30px;
+      }
+
+      >span:nth-child(2) {
+        /* border: 1px solid red; */
+        width: 130px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      >span:nth-child(3) {
+        /* border: 1px solid red; */
+        width: 35px;
+      }
+
+      >span:nth-child(4) {
+        /* border: 1px solid red; */
+        width: 60px;
+      }
+
+      >span:nth-child(5) {
+        /* border: 1px solid red; */
+        width: 50px;
+      }
+
+      .player-status {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 3px;
+      }
+    }
+
+    .row {
+      margin: 5px 0;
+      font-size: 13px;
+      background: #010d2b;
+      padding: 4px 0;
+
+    }
   }
 
   .colorexplain {
@@ -79,64 +123,4 @@
     border-radius: 5px;
   }
 
-  /* Transition animations */
-  .row-enter {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-
-  .row {
-    /* border: 1px solid yellow; */
-    width: 300px;
-  }
-
-  .header {
-    background: white;
-    color: #242424;
-    font-size: 14px;
-  }
-
-  .header,
-  .row {
-    display: flex;
-    justify-content: space-between;
-
-    >span {
-      display: inline-block;
-      width: 50px;
-
-      span {
-        display: inline-block;
-      }
-
-    }
-
-    .player-status {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 3px;
-    }
-  }
-  .row{
-    margin: 5px 0;
-    font-size: 13px;
-  }
-
-  .row-enter-active {
-    opacity: 1;
-    transform: translateY(0);
-    transition: opacity 300ms ease, transform 300ms ease;
-  }
-
-  .row-exit {
-    opacity: 1;
-    transform: translateY(0);
-  }
-
-  .row-exit-active {
-    opacity: 0;
-    transform: translateY(-20px);
-    transition: opacity 300ms ease, transform 300ms ease;
-  }
 }

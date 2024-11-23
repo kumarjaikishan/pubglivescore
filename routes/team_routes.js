@@ -35,6 +35,17 @@ router.get('/tournalist', async (req, res) => {
         res.status(500).json({ message: 'Error fetching team list', error });
     }
 });
+router.get('/deletetournament/:tournId', async (req, res) => {
+    const { tournId } = req.params;
+
+    try {
+        const tournament = await Tournament.findByIdAndDelete(tournId);
+        await Team.deleteMany({ tournament: tournId });
+        res.status(200).json({ message: "Tournament Deleted" });
+    } catch (error) {
+        res.status(500).json({ message: 'Error fetching team list', error });
+    }
+});
 router.post('/savelist', async (req, res) => {
     // console.log(req.body)
     try {
@@ -54,7 +65,6 @@ router.put('/updateteam/:tournamentId', async (req, res) => {
     const { tournamentId } = req.params;
 
     try {
-
         // Perform the update for each team by their ID
         await Team.findByIdAndUpdate(tournamentId, req.body);
 
@@ -90,7 +100,7 @@ router.post('/addtournament', async (req, res) => {
 
 router.post('/register', async (req, res) => {
     try {
-        const { tournament, teamName, points, kills, players, logo } = req.body;
+        const { tournamentId, teamName, points, kills, players, logo } = req.body;
 
         // Ensure all required fields are present
         if (!teamName || !players || players.length === 0) {
@@ -98,14 +108,14 @@ router.post('/register', async (req, res) => {
         }
 
         // Fetch the highest `order` value for teams in the given tournament
-        const lastTeam = await Team.findOne({ tournament }).sort({ order: -1 }).exec();
+        const lastTeam = await Team.findOne({ tournamentId }).sort({ order: -1 }).exec();
 
         // Set the `order` for the new team. If no team exists, start at 1.
         const newTeamOrder = lastTeam ? lastTeam.order + 1 : 1;
 
         // Create a new team with the calculated `order`
         const team = new Team({
-            tournament,
+            tournament: tournamentId,
             teamName,
             points: points || 0,
             kills: kills || 0,
@@ -140,6 +150,17 @@ router.put('/updatestatus/:id', async (req, res) => {
         socketfunc(team.tournament.toString(), "teamUpdate", team)
 
         res.json({ message: 'Updated successfully' });
+    } catch (error) {
+        console.error('Error updating status:', error);
+        res.status(500).json({ message: 'Error updating status', error });
+    }
+});
+router.delete('/deleteteam/:id', async (req, res) => {
+    // console.log(req.params.id)
+    try {
+        await Team.deleteOne({ _id: req.params.id });
+
+        res.json({ message: 'Team Deleted successfully' });
     } catch (error) {
         console.error('Error updating status:', error);
         res.status(500).json({ message: 'Error updating status', error });
