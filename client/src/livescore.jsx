@@ -12,8 +12,7 @@ const TournamentScore = () => {
 
   // Initialize socket connection once on mount
   useEffect(() => {
-    // const socket = io('http://localhost:5006');
-    const socket = io('https://livescore.battlefiesta.in/');
+    const socket = io(import.meta.env.SOCKET);
     setConnectionStatus('connecting');
 
     socket.on('connect', () => {

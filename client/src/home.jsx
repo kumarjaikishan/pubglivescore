@@ -21,12 +21,11 @@ const Home = () => {
     };
 
     const fetchTournament = async () => {
-        console.log("called")
         try {
             const response = await fetch(`${import.meta.env.VITE_API_ADDRESS}tournalist`);
             const data = await response.json();
-            console.log(data);
-            console.log(response)
+            // console.log(data);
+            // console.log(response)
             settournalist(data.tournament); // Set the fetched tournaments
         } catch (error) {
             console.error('Error fetching tournaments:', error.message);

@@ -21,8 +21,7 @@ const TournamentInput = () => {
   };
 
   useEffect(() => {
-    const socket = io('https://livescore.battlefiesta.in/');
-    // const socket = io('https://livescore.battlefiesta.in');
+    const socket = io(import.meta.env.SOCKET);
     setConnectionStatus('connecting');
 
     socket.on('connect', () => {
