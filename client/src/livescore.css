@@ -35,6 +35,7 @@
       background-color: #f2f2f2;
       font-size: 13px;
       font-weight: 700;
+      border: 1px dotted grey;
     }
 
     .header,
@@ -93,7 +94,7 @@
 
     }
     .row.eliminated{
-      background: rgba(0,0,0,0.6);
+      background: rgba(0,0,0,0.8);
       color: grey;
     }
   }

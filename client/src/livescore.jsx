@@ -92,7 +92,7 @@ const TournamentScore = () => {
 
   return (
     <div className="tournament-score">
-      <div id='status'>
+      {/* <div id='status'>
         <i>Status: </i>
         <i
           className="fa fa-wifi"
@@ -103,7 +103,7 @@ const TournamentScore = () => {
           }}
         ></i>
         <i style={{ marginLeft: '20px' }}>Connected Clients: {connectedClients}</i>
-      </div>
+      </div> */}
 
       <div className="scoreboard">
         <div className="header">
