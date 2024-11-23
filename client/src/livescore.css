@@ -89,10 +89,11 @@
       font-size: 13px;
       background: #010d2b;
       padding: 3px 0;
+      color: white;
 
     }
     .row.eliminated{
-      background: rgba(0,0,0,0.4);
+      background: rgba(0,0,0,0.6);
       color: grey;
     }
   }
