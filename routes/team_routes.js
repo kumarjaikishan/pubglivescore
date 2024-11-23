@@ -12,7 +12,16 @@ router.get('/teamlist/:tournamentId', async (req, res) => {
             path: 'tournament',
             select: 'killpoints name pointstable' // Include only specific fields from 'tournament'
         });
-        res.status(200).json({ team });
+        if (!team) {
+            return res.status(400).json({
+                message: "No team found"
+            })
+        }
+        // console.log(team)
+        const killpoints = team[0].tournament.killpoints
+        return res.status(200).json({
+            team, killpoints
+        });
     } catch (error) {
         res.status(500).json({ message: 'Error fetching team list', error });
     }
@@ -43,7 +52,7 @@ router.post('/savelist', async (req, res) => {
 });
 router.put('/updateteam/:tournamentId', async (req, res) => {
     const { tournamentId } = req.params;
-  
+
     try {
 
         // Perform the update for each team by their ID

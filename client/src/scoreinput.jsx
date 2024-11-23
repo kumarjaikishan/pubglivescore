@@ -4,10 +4,10 @@ import './scoreinput.css';
 import { io } from "socket.io-client";
 
 const TournamentInput = () => {
-  const { tournamentId } = useParams(); 
-  
+  const { tournamentId } = useParams();
+
   const [teams, setTeams] = useState([]);
-  const killpoints = teams[0]?.tournament?.killpoints || 0;
+  const [killpoints,setkillpoints]= useState([]);
   const [connectedClients, setConnectedClients] = useState(0);
   const [connectionStatus, setConnectionStatus] = useState('disconnected');
 
@@ -35,7 +35,7 @@ const TournamentInput = () => {
       // console.log("Data received:", data);
       setTeams((prevTeams) => {
         // Update the team data only if something has changed
-        const updatedTeams = prevTeams.map((t) => 
+        const updatedTeams = prevTeams.map((t) =>
           t._id === data._id ? { ...t, ...data } : t
         );
 
@@ -58,7 +58,9 @@ const TournamentInput = () => {
       try {
         const response = await fetch(`${import.meta.env.VITE_API_ADDRESS}teamlist/${tournamentId}`);
         const data = await response.json();
+        console.log(data)
         setTeams(data.team); // Set the fetched teams
+        setkillpoints(data.killpoints)
       } catch (error) {
         console.error('Error fetching teams:', error);
       }
@@ -69,7 +71,7 @@ const TournamentInput = () => {
 
   const updatePlayerStatus = async (teamId, playerIndex, status) => {
     let latestStatus;
-    await setTeams((prevTeams) =>
+    setTeams((prevTeams) =>
       prevTeams.map((team) => {
         if (team._id === teamId) {
           const newPlayers = [...team.players];
@@ -102,6 +104,11 @@ const TournamentInput = () => {
     }
   };
 
+  useEffect(() => {
+    console.log(teams)
+    console.log("killpoints:",killpoints)
+  }, [teams])
+
   const updateKills = async (teamId, kills) => {
     setTeams((prevTeams) =>
       prevTeams.map((team) =>
@@ -131,7 +138,7 @@ const TournamentInput = () => {
 
   return (
     <div className="tournament-input">
-    <div id='status'>
+      <div id='status'>
         <i>Status: </i>
         <i
           className="fa fa-wifi"
@@ -143,7 +150,7 @@ const TournamentInput = () => {
         ></i>
         <i style={{ marginLeft: '20px' }}>Connected Clients: {connectedClients}</i>
       </div>
-      <h2>PUBG Tournament Score Input</h2>
+      <h2>PUBG Tournament Score Input{teams?.length} </h2>
       <table>
         <thead>
           <tr>
@@ -155,6 +162,7 @@ const TournamentInput = () => {
           </tr>
         </thead>
         <tbody>
+        {!teams && <tr style={{color:'yellow'}}><td colSpan={5}>No Team Found</td> </tr> }
           {teams && teams.map((team, index) => (
             <tr key={team._id} className="team-row">
               <td>{index + 1}</td>

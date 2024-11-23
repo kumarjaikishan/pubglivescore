@@ -94,7 +94,7 @@ const TournamentScore = () => {
         </div>
         <AnimatePresence>
           {teams.length === 0 ? (
-            <p>Loading teams...</p>  // Add a loading state
+            <p >No Team Found</p>  // Add a loading state
           ) : (
             teams.map((team, index) => (
               <motion.div
