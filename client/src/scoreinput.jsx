@@ -79,6 +79,7 @@ const TournamentInput = () => {
           latestStatus = { newPlayers };
           return { ...team, players: newPlayers };
         }
+        
         return team;
       })
     );
@@ -146,7 +147,7 @@ const TournamentInput = () => {
         ></i>
         <i style={{ marginLeft: '20px' }}>Connected Clients: {connectedClients}</i>
       </div>
-      <h2>PUBG Tournament Score Input{teams?.length} </h2>
+      <h2>PUBG Tournament Score Input</h2>
       <table>
         <thead>
           <tr>

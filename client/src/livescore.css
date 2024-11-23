@@ -2,17 +2,8 @@
 .tournament-score {
   font-family: Arial, sans-serif;
   text-align: center;
-  padding: 20px;
-
-
-  .score-list {
-    width: 100%;
-    margin-top: 20px;
-  }
-
-  .team-name {
-    text-align: left;
-  }
+  padding: 0px;
+  /* display: flex; */
 
   .player-bar {
     width: 5px;
@@ -22,18 +13,21 @@
 
   .alive {
     background-color: green;
+    background-color: white;
   }
 
   .knocked {
     background-color: yellow;
+    background-color: red;
   }
 
   .eliminated {
     background-color: red;
+    background-color: grey;
   }
 
   .scoreboard {
-    margin-top: 30px;
+    margin-top: 10px;
 
     .header {
       color: #242424;
@@ -46,13 +40,12 @@
     .header,
     .row {
       display: flex;
-      width: 300px;
+      width: 280px;
       /* justify-content: space-between; */
 
       >span {
         display: inline-block;
         width: 50px;
-
       }
 
       >span:nth-child(1) {
@@ -92,11 +85,15 @@
     }
 
     .row {
-      margin: 5px 0;
+      margin: 4px 0;
       font-size: 13px;
       background: #010d2b;
-      padding: 4px 0;
+      padding: 3px 0;
 
+    }
+    .row.eliminated{
+      background: rgba(0,0,0,0.4);
+      color: grey;
     }
   }
 
@@ -122,5 +119,4 @@
     height: 12px;
     border-radius: 5px;
   }
-
 }

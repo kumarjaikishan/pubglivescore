@@ -10,13 +10,13 @@ const TournamentScore = () => {
   const [connectedClients, setConnectedClients] = useState(0);
   const [connectionStatus, setConnectionStatus] = useState('disconnected');
 
+
   // Initialize socket connection once on mount
   useEffect(() => {
     const socket = io(import.meta.env.VITE_SOCKET);
     setConnectionStatus('connecting');
 
     socket.on('connect', () => {
-      // console.log(`Connected with socket ID: ${socket.id}`);
       setConnectionStatus('connected');
     });
 
@@ -30,7 +30,17 @@ const TournamentScore = () => {
           t._id === data._id ? { ...t, ...data } : t
         ).sort((a, b) => b.points - a.points);
 
-        return updatedTeams;
+        const sdsd = updatedTeams.map((t) => {
+          let allknocked = true;
+          t.players.map((p, ind) => {
+            if (p == 'alive' || p == "knocked") {
+              allknocked = false
+            }
+          })
+          return { ...t, allknocked }
+        })
+        // return updatedTeams;
+        return sdsd;
       });
     });
 
@@ -50,7 +60,19 @@ const TournamentScore = () => {
       try {
         const response = await fetch(`${import.meta.env.VITE_API_ADDRESS}teamlist/${tournamentId}`);
         const data = await response.json();
-        setTeams(data.team.sort((a, b) => b.points - a.points));
+
+        const sdsd = data.team.map((t) => {
+          let allknocked = true;
+          t.players.map((p, ind) => {
+            if (p == 'alive' || p == "knocked") {
+              allknocked = false
+            }
+          })
+          return { ...t, allknocked }
+        })
+        // console.log(sdsd)
+        // setTeams(sdsd)
+        setTeams(sdsd.sort((a, b) => b.points - a.points));
       } catch (error) {
         console.error('Error fetching teams:', error);
       }
@@ -98,7 +120,8 @@ const TournamentScore = () => {
           teams.map((team, index) => (
             <div
               key={team._id}
-              className="row"
+              // className="row"
+              className={`${team.allknocked ? 'row eliminated' : "row"}`}
             >
               <span>{index + 1}</span>
               <span style={{ textAlign: 'left' }}>{team.teamName}</span>
